@@ -2,6 +2,8 @@ import json
 import numpy as np
 from google import genai
 from google.genai import types
+from google.cloud.firestore_v1.base_vector_query import DistanceMeasure
+from google.cloud.firestore_v1.vector import Vector
 from pydantic import BaseModel, Field
 from typing import List
 from dotenv import load_dotenv
@@ -80,7 +82,8 @@ def ranquear_membros_por_embeddings(requisitos: LevantamentoRequisitos, membros_
 
 	todos_textos = [texto_projeto] + textos_membros
 	res = client.models.embed_content(
-		model="text-embedding-004",
+		# model="text-embedding-004",
+		model="gemini-embedding-001",
 		contents=todos_textos
 	)
 
@@ -94,6 +97,37 @@ def ranquear_membros_por_embeddings(requisitos: LevantamentoRequisitos, membros_
 		m["score_afinidade_vetorial"] = round(float(score) * 100, 1)
 
 	return sorted(membros_elegiveis, key=lambda x: x["score_afinidade_vetorial"], reverse=True)
+
+def gerar_vetor(texto: str) -> list[float]:
+	res = client.models.embed_content(
+		# model="text-embedding-004",
+		model="gemini-embedding-001",
+		contents=texto
+	)
+
+	return res.embeddings[0].values
+
+def buscar_membros_vetorial_firestore(db, texto_requisitos_projeto: str, limite: int = 6):
+	vetor_projeto = gerar_vetor(texto_requisitos_projeto)
+
+	colecao = db.collection("bugwares")
+
+	vector_query = colecao.find_nearest(
+		vector_field="embedding_skills",
+		query_vector=Vector(vetor_projeto),
+		distance_measure=DistanceMeasure.COSINE,
+		limit=limite
+	)
+
+	resultados = []
+	for doc in vector_query.stream():
+		dados = doc.to_dict()
+		dados.pop("embedding_skills", None)
+
+		if dados.get("status") in ["Livre", "Passivamente Ocupado"]:
+			resultados.append(dados)
+
+	return resultados
 
 def extrair_requisitos_lead(anotacoes_reuniao: str) -> LevantamentoRequisitos:
 	prompt = f"""
