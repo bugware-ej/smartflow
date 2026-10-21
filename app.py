@@ -78,8 +78,8 @@ with aba_copiloto:
 			with col2:
 				st.subheader("🏛️ Propagação inter-diretorias (Guardrail Ativo)")
 				st.info(f"💰 **Adm/Fin (Cálculo Travado por Guardrail):**\n\n" +
-				f"- **Orçamento Base:** R$ {orcamento_travado['orcamento_base_calculado']}\n" +
-				f"- **Sugestão com Margem ({regras_adm.get('margem_seguranca_percentual')} %):** R$ {orcamento_travado['orcamento_com_margem_seguranca']}\n\n" +
+				f"- **Orçamento Base:** R\$ {orcamento_travado['orcamento_base_calculado']}\n" +
+				f"- **Sugestão com Margem ({regras_adm.get('margem_seguranca_percentual')} %):** R\$ {orcamento_travado['orcamento_com_margem_seguranca']}\n\n" +
 				f"{resultado_final.insumos_adm_fin}")
 
 				st.warning("⚖️ **Impacto Jurídico & Compliance:**\n" + "\n".join([f"- {item}" for item in resultado_final.impacto_juridico]))

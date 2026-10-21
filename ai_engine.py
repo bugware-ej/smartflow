@@ -135,6 +135,8 @@ def gerar_alocacao_e_propagacao(
 
 	MEMBROS DISPONÍVEIS (Com Score de Afinidade Vetorial):
 	{json.dumps(membros_ranqueados, ensure_ascii=False)}
+
+	Lembre-se de alterar o caractere '$' para '\$' por motivos de exibição em Markdown.
 	"""
 
 	res = client.models.generate_content(
