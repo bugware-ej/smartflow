@@ -30,6 +30,9 @@ Para baixar as dependências do projeto, utilize o seguinte comando:
 pip install -r requirements.txt
 ```
 
+> [!note]
+> Caso não haja dados populados no banco, recomenda-se utilizar o comando `python seed_firebase.py` antes de inicializar a página web do projeto.
+
 Por fim, para inicializar a página web do projeto, utilize o seguinte comando (note que a rota ficará disponível na mensagem do terminal):
 
 ```sh
@@ -38,13 +41,15 @@ streamlit run app.py
 
 ## Coleções
 
+No banco de dados *Firebase* estarão guardados os documentos a seguir:
+
 ```json
 "bugwares": {
 	"nome": "string",
 	"cargo": "string",
 	"status": "livre" | "passivamente ocupado" | "ocupado",
 	"area": "frontend" | "backend" | "mobile" | "ux/ui" | "dados" | "qa" | "pm/po" | "tech lead",
-	"habilidades": [""],
+	"habilidades": ["string"],
 	"nivel_experiencia": "trainee" | "junior" | "pleno" | "senior",
 	"horas_disponiveis": "number"
 }
@@ -59,6 +64,44 @@ streamlit run app.py
 		"valor_hora_base": "number",
 		"taxa_urgencia": "number",
 		"custo_fixo_infra": "number"
+	}
+}
+
+"historico_leads": {
+	"orcamento": {
+		"horas_consideradas": "number",
+		"orcamento_base_calculado": "number",
+		"orcamento_com_margem_seguranca": "number",
+		"valor_hora_tabela": "number"
+	},
+	"projeto": "string",
+	"propagacao": {
+		"impacto_juridico": ["string"],
+		"insumos_adm_fin": "string",
+		"opcoes_equipes": [
+			// "equipe"
+			{
+				"foco_da_equipe": "string",
+				"membros": [
+					// "membro"
+					{
+						"cargo": "string",
+						"justificativa_tecnica": "string",
+						"nome": "string",
+						"papel_no_projeto": "string"
+					}
+				],
+				"nome_squad": "string"
+			}
+		]
+	},
+	"requisitos": {
+		"complexidade": "string",
+		"horas_estimadas_desenvolvimento": "number",
+		"nome_projeto": "string",
+		"requisitos_funcionais": ["string"],
+		"requisitos_nao_funcionais": ["string"],
+		"stack_sugerida": ["string"]
 	}
 }
 ```
