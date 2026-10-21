@@ -63,6 +63,12 @@ with aba_copiloto:
 
 			st.success("✅ Processamento concluído e salvo no Firebase!")
 
+			if (st.button("📥 Exportar documentação", type="primary")):
+				# TODO: Adicionar template de .docx
+				print("1/3 Escolhendo o template adequado")
+				print("2/3 Escolhendo o template adequado")
+				print("3/3 Escolhendo o template adequado")
+
 			col1, col2 = st.columns(2)
 
 			with col1:
@@ -70,10 +76,14 @@ with aba_copiloto:
 				st.write(f"**Complexidade:** {requisitos.complexidade} | **Esforço Estimado:** {requisitos.horas_estimadas_desenvolvimento}h")
 				st.write(requisitos.resumo_executivo)
 				st.markdown("**Stack Recomendada:** " + ", ".join([f"`{s}`" for s in requisitos.stack_sugerida]))
-				st.markdown("**Requisitos Funcionais:**")
 
+				st.markdown("**Requisitos Funcionais:**")
 				for rf in requisitos.requisitos_funcionais:
 					st.markdown(f"- {rf}")
+
+				st.markdown("**Requisitos Não Funcionais:**")
+				for rnf in requisitos.requisitos_nao_funcionais:
+					st.markdown(f"- {rnf}")
 
 			with col2:
 				st.subheader("🏛️ Propagação inter-diretorias (Guardrail Ativo)")
