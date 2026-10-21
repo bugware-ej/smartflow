@@ -1,5 +1,5 @@
 venv/
 firebase_key.json
-
+__pycache__/
 .env*
 !.env.example
