@@ -17,8 +17,14 @@ Para a utilização do ambiente virtual do python, é necessário criá-lo e ati
 # Criar o ambiente virtual
 python -m venv venv
 
-# Ativar o ambiente virtual
+# Ativar o ambiente virtual no Linux
 source venv/bin/activate
+
+# Ativar o ambiente virtual no Windows (CMD)
+venv\Scripts\activate.bat
+
+# Ativar o ambiente virtual no Windows (PowerShell)
+venv\Scripts\Activate.ps1
 ```
 
 > [!tip]
