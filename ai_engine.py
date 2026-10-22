@@ -11,9 +11,9 @@ import os
 
 load_dotenv()
 
-ai_api_key = os.getenv("AI_API_KEY")
-ai_model = os.getenv("AI_MODEL")
-ai_temperature = os.getenv("AI_TEMPERATURE")
+ai_api_key = os.getenv("AI_API_KEY", "")
+ai_model = os.getenv("AI_MODEL", "gemini-3.1-flash-lite")
+ai_temperature = float(os.getenv("AI_TEMPERATURE", 0.2))
 
 client = genai.Client(api_key=ai_api_key)
 
@@ -35,6 +35,7 @@ class MembroAlocado(BaseModel):
 	nome: str
 	cargo: str
 	papel_no_projeto: str
+	score_afinidade: float = Field(description="Score vetorial do membro vindo do banco")
 	justificativa_tecnica: str
 
 class OpcaoEquipe(BaseModel):
@@ -49,11 +50,17 @@ class PropagacaoDiretorias(BaseModel):
 
 def aplicar_guardrails_membros(membros: list) -> list:
 	status_validos = ["livre", "passivamente ocupado"]
+	elegiveis = []
+
+	for m in membros:
+		atual = m.copy()
+		atual.pop("embedding_skills", None)
+		status_membro = str(atual.get("status", "")).strip().lower()
+
+		if status_membro in status_validos and atual.get("horas_disponiveis", 0) > 0:
+			elegiveis.append(atual)
 	
-	return [
-		m for m in membros
-		if m.get("status") in status_validos and m.get("horas_disponiveis", 0) > 0
-	]
+	return elegiveis
 
 def calcular_orcamento_guardrail(horas_estimadas: int, regras_adm: dict) -> dict:
 	horas_reais = max(horas_estimadas, regras_adm.get("horas_minimas_projeto", HORAS_MINIMAS_PROJETO))
@@ -76,7 +83,7 @@ def ranquear_membros_por_embeddings(requisitos: LevantamentoRequisitos, membros_
 
 	texto_projeto = f"Projeto {requisitos.resumo_executivo}. Tecnologias: {', '.join(requisitos.stack_sugerida)}"
 	textos_membros = [
-		f"{m['area']} - Skills: {', '.join(m['skills'])} - Cargo: {m['cargo']}"
+		f"{m.get("area", "")} - Skills: {', '.join(m.get("skills", []))} - Cargo: {m.get("cargo", "")}"
 		for m in membros_elegiveis
 	]
 
@@ -105,29 +112,35 @@ def gerar_vetor(texto: str) -> list[float]:
 		contents=texto
 	)
 
-	return res.embeddings[0].values
+	return res.embeddings[0].values[:2048]
 
-def buscar_membros_vetorial_firestore(db, texto_requisitos_projeto: str, limite: int = 6):
-	vetor_projeto = gerar_vetor(texto_requisitos_projeto)
-
+def buscar_membros_vetorial_firestore(db, requisitos: LevantamentoRequisitos, limite: int = 16):
+	texto_projeto = f"Projeto {requisitos.resumo_executivo}. Stack: {', '.join(requisitos.stack_sugerida)}"
 	colecao = db.collection("bugwares")
 
-	vector_query = colecao.find_nearest(
-		vector_field="embedding_skills",
-		query_vector=Vector(vetor_projeto),
-		distance_measure=DistanceMeasure.COSINE,
-		limit=limite
-	)
+	try:
+		vetor_projeto = gerar_vetor(texto_requisitos_projeto)
 
-	resultados = []
-	for doc in vector_query.stream():
-		dados = doc.to_dict()
-		dados.pop("embedding_skills", None)
+		vetor_query = colecao.find_nearest(
+			vector_field="embedding_skills",
+			query_vector=Vector(vetor_projeto),
+			distance_measure=DistanceMeasure.COSINE,
+			limit=limite
+		)
 
-		if dados.get("status") in ["Livre", "Passivamente Ocupado"]:
-			resultados.append(dados)
+		membros_brutos = [doc.to_dict() for doc in vetor_query.stream()]
 
-	return resultados
+		if membros_brutos:
+			# elegiveis = aplicar_guardrails_membros(membros_brutos)
+			# return ranquear_membros_por_embeddings(requisitos, elegiveis)
+			return aplicar_guardrails_membros(membros_brutos)
+	
+	except Exception:
+		pass
+
+	membros_brutos = [doc.to_dict() for doc in colecao.stream()]
+	elegiveis = aplicar_guardrails_membros(membros_brutos)
+	return ranquear_membros_por_embeddings(requisitos, elegiveis)
 
 def extrair_requisitos_lead(anotacoes_reuniao: str) -> LevantamentoRequisitos:
 	prompt = f"""
@@ -160,17 +173,18 @@ def gerar_alocacao_e_propagacao(
 	Você é o Coordenador de Operações Inteligente da Bugware (Empresa Júnior de Computação).
 	Com base nos requisitos extraídos, nos membros elegíveis ranqueados por busca vetorial e no cálculo travado de Adm/Fin:
 
-	1. Monte 3 OPÇÕES DE EQUIPES MULTIDISCIPLINARES diferentes (misturando Membros Efetivos e Trainees para capacitação, respeitando status Livre ou Passivamente Ocupado).
+	1. Monte 3 OPÇÕES DE EQUIPES MULTIDISCIPLINARES diferentes (misturando Membros Efetivos e Trainees para capacitação).
+	REGRA DE GUARDRAIL ESTRITA: Você DEVE escolher EXCLUSIVAMENTE pessoas que estão na lista 'MEMBROS DISPONÍVEIS' abaixo. É PROIBIDO inventar nomes que não estejam nessa lista JSON. Preencha o campo 'score_afinidade' com o valor exato de 'score_afinidade_vetorial' de cada membro.
 	2. Elabore o parecer comercial/financeiro para a diretoria de Adm/Fin respeitando ESTRITAMENTE os valores calculados no Guardrail: {json.dumps(dados_orcamento)}.
 	3. Elabore os pontos de atenção e impactos contratuais para a diretoria Jurídica (LGPD, APIs de terceiros, propriedade intelectual, escopo fechado vs aberto).
 
 	REQUISITOS DO PROJETO:
 	{requisitos.model_dump_json()}
 
-	MEMBROS DISPONÍVEIS (Com Score de Afinidade Vetorial):
+	MEMBROS DISPONÍVEIS NO FIREBASE (Com Score de Afinidade Vetorial):
 	{json.dumps(membros_ranqueados, ensure_ascii=False)}
 
-	Lembre-se de alterar o caractere '$' para '\$' por motivos de exibição em Markdown.
+	Lembre-se de alterar o caractere '$' para '\\$' por motivos de exibição em Markdown.
 	"""
 
 	res = client.models.generate_content(
@@ -184,5 +198,3 @@ def gerar_alocacao_e_propagacao(
 	)
 
 	return PropagacaoDiretorias.model_validate_json(res.text)
-
-
