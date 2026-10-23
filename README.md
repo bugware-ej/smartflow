@@ -30,6 +30,27 @@ flowchart TD
 3. **Guardrail Financeiro (`calcular_orcamento_guardrail`):** Impede alucinações matemáticas da IA. O cálculo do piso de horas (40h), valor-hora (R$ 45,00) e margem de contingência (15%) é executado em código Python puro a partir dos parâmetros do Firestore.
 4. **Padronização com Pydantic (`Structured Outputs`):** Uso de `response_schema` forçando respostas estritamente tipadas em JSON, garantindo estabilidade de 100% na interface.
 
+## Modelo Antigo (Manual)
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor Cliente
+  participant Com as Direx. Comercial
+  participant Adm as Direx. Adm/Fin
+  participant Proj as Direx. Projetos
+  participant Gp as Direx. Gestão Pessoas
+  Cliente->>Com: Reunião de Alinhamento (horas)
+  activate Com
+  Com->>Proj: Relatório de Requisitos (dias)
+  Proj-->>Com: Aprovar Relatório de Requisitos
+  Com->>Adm: Relatório Precificação (horas)
+  Adm-->>Com: Aprovar Relatório de Precificação
+  deactivate Com
+  Com-->>Cliente: Confirmação do Projeto
+  Note over Cliente,Com: Processo Contratual de 1 semana
+```
+
 ## Inicialização
 
 Para inicializar o projeto, é necessário criar o arquivo `.env` baseado no arquivo `.env.example` e inserindo os dados apropriados para o ambiente de desenvolvimento/produção.
