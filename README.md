@@ -57,6 +57,7 @@ Para inicializar o projeto, é necessário criar o arquivo `.env` baseado no arq
 
 > [!note]
 > Sugere-se fortemente o uso dos seguintes modelos (pela leveza e qualidade satisfatória do resultado):
+> 
 > gemini-3.8-flash
 > gemini-3.6-flash
 > gemini-3.5-flash-lite

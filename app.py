@@ -22,7 +22,8 @@ db = firestore.client()
 st.set_page_config(
 	page_title="Bugware SmartFlow | Desafio V360",
 	page_icon="👾",
-	layout="wide"
+	layout="wide",
+	initial_sidebar_state="expanded"
 )
 
 with st.sidebar:
