@@ -247,7 +247,7 @@ def gerar_alocacao_e_propagacao(
 	Você é o Coordenador de Operações Inteligente da Bugware (Empresa Júnior de Computação).
 	Com base nos requisitos extraídos, nos membros elegíveis ranqueados por busca vetorial e no cálculo travado de Adm/Fin:
 
-	1. Monte 3 OPÇÕES DE EQUIPES MULTIDISCIPLINARES diferentes (misturando Membros Efetivos e Trainees para capacitação).
+	1. Monte 3 OPÇÕES DE EQUIPES MULTIDISCIPLINARES diferentes (misturando Membros Efetivos e Trainees para capacitação), entre 3 a 5 pessoas quando possível.
 	REGRA DE GUARDRAIL ESTRITA: Você DEVE escolher EXCLUSIVAMENTE pessoas que estão na lista 'MEMBROS DISPONÍVEIS' abaixo. É PROIBIDO inventar nomes que não estejam nessa lista JSON. Preencha o campo 'score_afinidade' com o valor exato de 'score_afinidade_vetorial' de cada membro.
 	2. Elabore o parecer comercial/financeiro para a diretoria de Adm/Fin respeitando ESTRITAMENTE os valores calculados no Guardrail: {json.dumps(dados_orcamento)}.
 	3. Elabore os pontos de atenção e impactos contratuais para a diretoria Jurídica (LGPD, APIs de terceiros, propriedade intelectual, escopo fechado vs aberto).

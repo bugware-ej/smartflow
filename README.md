@@ -33,7 +33,6 @@ flowchart TD
 ## Modelo Antigo (Manual)
 
 ```mermaid
-
 sequenceDiagram
     actor Cliente
     participant Comercial as Diretoria Comercial

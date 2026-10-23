@@ -235,7 +235,7 @@ with aba_banco:
 
 with aba_historico:
 	st.subheader("Histórico de Leads e Propostas Geradas no Firebase")
-	historico_docs = db.collection("historico_leads").stream()
+	historico_docs = db.collection("historico_leads").order_by("projeto").stream()
 
 	for h in historico_docs:
 		id = h.id
