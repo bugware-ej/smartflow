@@ -33,22 +33,40 @@ flowchart TD
 ## Modelo Antigo (Manual)
 
 ```mermaid
+
 sequenceDiagram
-  autonumber
-  actor Cliente
-  participant Com as Direx. Comercial
-  participant Adm as Direx. Adm/Fin
-  participant Proj as Direx. Projetos
-  participant Gp as Direx. Gestão Pessoas
-  Cliente->>Com: Reunião de Alinhamento (horas)
-  activate Com
-  Com->>Proj: Relatório de Requisitos (dias)
-  Proj-->>Com: Aprovar Relatório de Requisitos
-  Com->>Adm: Relatório Precificação (horas)
-  Adm-->>Com: Aprovar Relatório de Precificação
-  deactivate Com
-  Com-->>Cliente: Confirmação do Projeto
-  Note over Cliente,Com: Processo Contratual de 1 semana
+    actor Cliente
+    participant Comercial as Diretoria Comercial
+    participant Projetos as Diretoria de Projetos
+    participant Adm as Diretoria Adm/Fin
+    participant GP as Gerente do Projeto
+    participant Equipe as Equipe Técnica
+
+    Cliente->>Comercial: Primeiro contato
+    Comercial->>Cliente: Agendar reunião de alinhamento
+    Comercial->>Cliente: Reunião para entender necessidades
+    Comercial->>Projetos: Compartilhar informações e necessidades
+    Projetos-->>Comercial: Análise de viabilidade e disponibilidade
+    Comercial->>Comercial: Planejamento geral e precificação
+    Comercial->>Cliente: Apresentar proposta e valor aproximado
+    Cliente-->>Comercial: Aprovar proposta
+
+    Comercial->>Adm: Repassar requisitos do cliente
+    Adm->>Adm: Elaborar contrato
+    Adm->>Cliente: Enviar contrato
+    Cliente-->>Adm: Assinar contrato
+    Adm-->>Comercial: Confirmar formalização
+
+    Comercial->>Projetos: Solicitar montagem da equipe
+    Projetos->>Projetos: Selecionar membros conforme habilidades, interesses, stack e disponibilidade
+    Projetos-->>GP: Definir equipe e gerente responsável
+
+    GP->>GP: Elaborar termo de abertura do projeto
+    GP->>Cliente: Agendar reunião de início com PM e/ou PO
+    GP->>Cliente: Realizar reunião de início
+    GP->>Equipe: Alinhar objetivos, escopo e responsabilidades
+    GP-->>Equipe: Autorizar início das atividades
+    Note over Cliente,Equipe: Início da execução do projeto
 ```
 
 ## Inicialização
