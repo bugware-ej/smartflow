@@ -1,6 +1,15 @@
 [theme]
-primaryColor = "#6C63FF"
-backgroundColor = "#0E1117"
-secondaryBackgroundColor = "#1E222B"
-textColor = "#FAFAFA"
-font = "sans serif"
+primaryColor = "#7C3AED"
+font = "Poppins"
+
+[theme.light]
+backgroundColor = "#F8F7FC"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#241B35"
+primaryColor = "#7138B7"
+
+[theme.dark]
+backgroundColor = "#12101A"
+secondaryBackgroundColor = "#211B30"
+textColor = "#F8F6FF"
+primaryColor = "#A78BFA"
