@@ -31,6 +31,18 @@ class LevantamentoRequisitos(BaseModel):
 	horas_estimadas_desenvolvimento: int
 	complexidade: str = Field(description="Baixa, Média ou Alta")
 
+	@classmethod
+	def from_dict(cls, dicionario: dict) -> LevantamentoRequisitos:
+		return LevantamentoRequisitos(
+			nome_projeto=dicionario.get("nome_projeto", ""),
+			resumo_executivo=dicionario.get("resumo_executivo", ""),
+			requisitos_funcionais=dicionario.get("requisitos_funcionais", []),
+			requisitos_nao_funcionais=dicionario.get("requisitos_nao_funcionais", []),
+			stack_sugerida=dicionario.get("stack_sugerida", []),
+			horas_estimadas_desenvolvimento=dicionario.get("horas_estimadas_desenvolvimento", 0),
+			complexidade=dicionario.get("complexidade", "")
+		)
+
 class MembroAlocado(BaseModel):
 	nome: str
 	cargo: str
@@ -38,15 +50,76 @@ class MembroAlocado(BaseModel):
 	score_afinidade: float = Field(description="Score vetorial do membro vindo do banco")
 	justificativa_tecnica: str
 
+	@classmethod
+	def from_dict(cls, dicionario: dict) -> MembroAlocado:
+		return MembroAlocado(
+			nome=dicionario.get("nome", ""),
+			cargo=dicionario.get("cargo", ""),
+			papel_no_projeto=dicionario.get("papel_no_projeto", ""),
+			score_afinidade=dicionario.get("score_afinidade", 0.0),
+			justificativa_tecnica=dicionario.get("justificativa_tecnica", ""),
+		)
+
 class OpcaoEquipe(BaseModel):
 	nome_squad: str = Field(description="Ex: Squad Velocidade, Squad Inovação + Trainee, etc.")
 	foco_da_equipe: str
 	membros: List[MembroAlocado]
 
+	@classmethod
+	def from_dict(cls, dicionario: dict) -> OpcaoEquipe:
+		return OpcaoEquipe(
+			nome_squad=dicionario.get("nome_squad", ""),
+			foco_da_equipe=dicionario.get("foco_da_equipe", ""),
+			membros=[MembroAlocado.from_dict(ma) for ma in dicionario.get("membros", [])]
+		)
+
 class PropagacaoDiretorias(BaseModel):
 	insumos_adm_fin: str = Field(description="Análise de custos base, sugestão de parcelamento e esforço em horas")
 	impacto_juridico: List[str] = Field(description="Cláusulas críticas, LGPD, propriedade intelectual, SLA e riscos")
 	opcoes_equipes: List[OpcaoEquipe]
+
+class Orcamento(BaseModel):
+	horas_consideradas: int
+	orcamento_base_calculado: float
+	orcamento_com_margem_seguranca: float
+	valor_hora_tabela: float
+
+	@classmethod
+	def from_dict(cls, dicionario: dict) -> Orcamento:
+		return Orcamento(
+			horas_consideradas=dicionario.get("horas_consideradas", 0),
+			orcamento_base_calculado=dicionario.get("orcamento_base_calculado", 0.0),
+			orcamento_com_margem_seguranca=dicionario.get("orcamento_com_margem_seguranca", 0.0),
+			valor_hora_tabela=dicionario.get("valor_hora_tabela", 0.0)
+		)
+
+class Propagacao(BaseModel):
+	impacto_juridico: List[str]
+	insumos_adm_fin: str
+	opcoes_equipes: List[OpcaoEquipe]
+
+	@classmethod
+	def from_dict(cls, dicionario: dict) -> Propagacao:
+		return Propagacao(
+			impacto_juridico=dicionario.get("impacto_juridico", []),
+			insumos_adm_fin=dicionario.get("insumos_adm_fin", ""),
+			opcoes_equipes=[OpcaoEquipe.from_dict(oe) for oe in dicionario.get("opcoes_equipes", [])]
+		)
+
+class HistoricoLeads(BaseModel):
+	orcamento: Orcamento
+	projeto: str
+	propagacao: Propagacao
+	requisitos: LevantamentoRequisitos
+
+	@classmethod
+	def from_dict(cls, dicionario: dict) -> HistoricoLeads:
+		return HistoricoLeads(
+			orcamento=Orcamento.from_dict(dicionario.get("orcamento", {})),
+			projeto=dicionario.get("projeto", ""),
+			propagacao=Propagacao.from_dict(dicionario.get("propagacao", {})),
+			requisitos=LevantamentoRequisitos.from_dict(dicionario.get("requisitos", {})),
+		)
 
 def aplicar_guardrails_membros(membros: list) -> list:
 	status_validos = ["livre", "passivamente ocupado"]
@@ -198,3 +271,58 @@ def gerar_alocacao_e_propagacao(
 	)
 
 	return PropagacaoDiretorias.model_validate_json(res.text)
+
+def gerar_relatorio_md(historico: HistoricoLeads) -> str:
+	requisitos = historico.requisitos
+	propagacao = historico.propagacao
+	orcamento = historico.orcamento
+
+	equipes_md = ""
+	for equipe in propagacao.opcoes_equipes:
+		equipes_md += f"### 🏆 {equipe.nome_squad}\n\n{equipe.foco_da_equipe}\n\n**Membros:**\n\n"
+
+		for m in equipe.membros:
+			equipes_md += f"- **{m.nome}** ({m.cargo}) - *{m.papel_no_projeto}*: "
+			equipes_md += f"{m.justificativa_tecnica} (🎯 **Match Vetorial:** `{m.score_afinidade} %`)\n"
+		equipes_md += "\n"
+
+	relatorio_md = f"""# Documento de Projeto: {requisitos.nome_projeto}
+
+**Complexidade:** {requisitos.complexidade} | **Horas Estimadas:** {requisitos.horas_estimadas_desenvolvimento}h
+
+**Orçamento Base (Guardrail):** R\\$ {orcamento.orcamento_base_calculado:.2f} | **Com Margem:** R\\$ {orcamento.orcamento_com_margem_seguranca:.2f}
+
+## 1. Resumo Executivo
+
+{requisitos.resumo_executivo}
+
+## 2. Stack Sugerida
+
+{", ".join(requisitos.stack_sugerida)}
+
+## 3. Requisitos Funcionais
+
+{chr(10).join(["- " + r for r in requisitos.requisitos_funcionais])}
+
+## 4. Requisitos Não-Funcionais
+
+{chr(10).join(["- " + r for r in requisitos.requisitos_nao_funcionais])}
+
+## 5. Parecer Adm/Fin
+
+{propagacao.insumos_adm_fin}
+
+## 6. Parecer Jurídico & Compliance
+
+{chr(10).join(["- " + j for j in propagacao.impacto_juridico])}
+
+## 7. Opções de Equipe
+
+{equipes_md}
+"""
+
+	return relatorio_md
+
+def gerar_relatorio_pdf(historico: HistoricoLeads):
+	gerar_relatorio_md(historico)
+

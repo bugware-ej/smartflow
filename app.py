@@ -7,7 +7,10 @@ from ai_engine import (
 	calcular_orcamento_guardrail,
 	buscar_membros_vetorial_firestore,
 	gerar_alocacao_e_propagacao,
-	gerar_vetor
+	gerar_vetor,
+	gerar_relatorio_md,
+	gerar_relatorio_pdf,
+	HistoricoLeads
 )
 
 if not firebase_admin._apps:
@@ -95,6 +98,12 @@ with aba_copiloto:
 
 			with st.spinner("3/3 Montando Squads Multidisciplinares e Relatórios (Adm/Fin e Jurídico)..."):
 				resultado_final = gerar_alocacao_e_propagacao(requisitos, membros_ranqueados, orcamento_travado)
+				historico_gerado = HistoricoLeads(
+					orcamento=orcamento_travado,
+					projeto=requisitos.nome_projeto,
+					propagacao=resultado_final.model_dump(),
+					requisitos=requisitos.model_dump()
+				)
 
 				db.collection("historico_leads").add({
 					"projeto": requisitos.nome_projeto,
@@ -158,44 +167,14 @@ with aba_copiloto:
 					for m in squad.membros:
 						st.markdown(f"**{m.nome}** ({m.cargo}) - *{m.papel_no_projeto}*  \n🎯 **Match Vetorial:** `{m.score_afinidade} %`")
 						st.write(f"↳ {m.justificativa_tecnica}")
-			
-			relatorio_md = f"""# Documento de Projeto: {requisitos.nome_projeto}
-
-**Complexidade:** {requisitos.complexidade} | **Horas Estimadas:** {requisitos.horas_estimadas_desenvolvimento}h
-
-**Orçamento Base (Guardrail):** R\\$ {orcamento_travado.get("orcamento_base_calculado", 0):.2f} | **Com Margem:** R\\$ {orcamento_travado.get("orcamento_com_margem_seguranca", 0):.2f}
-
-## 1. Resumo Executivo
-
-{requisitos.resumo_executivo}
-
-## 2. Stack Sugerida
-
-{", ".join(requisitos.stack_sugerida)}
-
-## 3. Requisitos Funcionais
-
-{chr(10).join(["- " + r for r in requisitos.requisitos_funcionais])}
-
-## 4. Requisitos Não-Funcionais
-
-{chr(10).join(["- " + r for r in requisitos.requisitos_nao_funcionais])}
-
-## 5. Parecer Adm/Fin
-
-{resultado_final.insumos_adm_fin}
-
-## 6. Parecer Jurídico & Compliance
-
-{chr(10).join(["- " + j for j in resultado_final.impacto_juridico])}
-"""
 
 			st.download_button(
 				label="📥 Baixar Documentação Completa (.md)",
-				data=relatorio_md,
+				data=gerar_relatorio_md(historico_gerado),
 				file_name=f"Escopo_{requisitos.nome_projeto.replace(" ", "_")}.md",
 				mime="text/markdown",
-				use_container_width=True
+				use_container_width=True,
+				on_click="ignore"
 			)
 
 with aba_banco:
@@ -241,7 +220,7 @@ with aba_banco:
 				perfil_texto = f"Área: {area}. Cargo: {cargo}. Habilidades técnicas: {', '.join(lista_skills)}"
 				vetor = gerar_vetor(perfil_texto)
 
-				novo = {
+				db.collection("bugwares").add({
 					"area": area,
 					"cargo": cargo,
 					"horas_disponiveis": horas,
@@ -250,9 +229,7 @@ with aba_banco:
 					"skills": lista_skills,
 					"status": status,
 					"embedding_skills": Vector(vetor)
-				}
-
-				db.collection("bugwares").add(novo)
+				})
 				st.success(f"✅ {nome} ({cargo}) cadastrado e vetorizado no Firestore! Recarregue a página para atualizar.")
 
 with aba_historico:
@@ -260,8 +237,30 @@ with aba_historico:
 	historico_docs = db.collection("historico_leads").stream()
 
 	for h in historico_docs:
-		atual = h.to_dict()
-		orcamento = atual.get("orcamento", {})
+		id = h.id
+		dicionario = h.to_dict()
+		atual = HistoricoLeads.from_dict(dicionario)
+		orcamento = atual.orcamento
 
-		with st.expander(f"📌 {atual.get("projeto", "Projeto")} | Esforço: {orcamento.get("horas_consideradas", 0)}h | Orçamento c/ Margem: R\\$ {orcamento.get("orcamento_com_margem_seguranca", 0):.2f}"):
-			st.json(atual)
+		with st.expander(f"📌 {atual.projeto} | Esforço: {orcamento.horas_consideradas}h | Orçamento c/ Margem: R\\$ {orcamento.orcamento_com_margem_seguranca}"):
+			st.download_button(
+				label="📥 Baixar Documentação Completa do Projeto (.md)",
+				data=gerar_relatorio_md(atual),
+				file_name=f"Escopo_{atual.requisitos.nome_projeto.replace(" ", "_")}.md",
+				mime="text/markdown",
+				use_container_width=True,
+				key="md-" + id,
+				on_click="ignore"
+			)
+
+			# st.download_button(
+			# 	label="📥 Baixar Documentação Completa do Projeto (.pdf)",
+			# 	data=gerar_relatorio_pdf(atual),
+			# 	file_name=f"Escopo_{atual.requisitos.nome_projeto.replace(" ", "_")}.pdf",
+			# 	mime="application/pdf",
+			# 	use_container_width=True,
+			# 	key="odt-" + id,
+			# 	on_click="ignore"
+			# )
+
+			st.json(atual.json())
