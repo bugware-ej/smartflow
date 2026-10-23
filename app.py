@@ -16,9 +16,32 @@ if not firebase_admin._apps:
 
 db = firestore.client()
 
-st.set_page_config(page_title="Bugware SmartFlow | Desafio V360", layout="wide")
-st.title("🚀 Bugware SmartFlow - Copiloto de Requisitos, Alocação e Governança")
-st.caption("Desafio de Inovação Conecta V360 - Trilha B (Tecnologia & TI)")
+st.set_page_config(
+	page_title="Bugware SmartFlow | Desafio V360",
+	page_icon="👾",
+	layout="wide"
+)
+
+with st.sidebar:
+	st.markdown("## 🛡️ Painel de Governança IA")
+	st.success("🟢 **API Gemini:** Conectada")
+	st.success("🟢 **Vector DB:** Firestore KNN Ativo")
+
+	negocio = db.collection("regras_negocio").document("adm_fin").get().to_dict()
+
+	st.info(
+		"**Guardrails Ativos no Código:**\n"
+		"- 🔒 **Alocação:** Bloqueio de membros 'Ocupados' ou com '0h' disponíveis.\n"
+		f"- 💰 **Adm/Fin:** Piso de {negocio.get("horas_minimas_projeto", 40)}h, R$ {negocio.get("valor_hora", 45)}/h e margem fixa de {negocio.get("margem_seguranca_percentual", 15)}%.\n"
+		"- ⚖️ **Compliance:** Verificação LGPD e Propriedade Intelectual."
+	)
+
+	st.divider()
+	st.metric(icon="⏱️", label="**Tempo Médio Antes (Manual)**", value="~4 dia(s)", delta="Gargalo Comercial", delta_color="inverse")
+	st.metric(icon="⚡", label="**Tempo com SmartFlow**", value="5 minuto(s)", delta="- 99.91% no tempo de resposta", delta_color="inverse")
+
+st.title("👾 Bugware SmartFlow - Copiloto de Requisitos, Alocação e Governança")
+st.caption("Desafio de Inovação Conecta V360 - Trilha B (Tecnologia & TI) | Python + Firebase Vector DB + Gemini API")
 
 aba_copiloto, aba_banco, aba_historico = st.tabs([
 	"🤖 Processar Novo Lead",
@@ -27,13 +50,32 @@ aba_copiloto, aba_banco, aba_historico = st.tabs([
 ])
 
 with aba_copiloto:
+	if "texto_lead" not in st.session_state:
+		st.session_state.texto_lead = ""
+	
+	col_btn_demo, _ = st.columns([1, 1])
+
+	if col_btn_demo.button("📋 Preencher com Caso de Exemplo"):
+		st.session_state.texto_lead = (
+			"# Reunião de Alinhamento Inicial - ReparaCAR\n\n"
+			"Duração: 72 minutos.\n\n"
+			"Demanda do Cliente: Desenvolvimento de um aplicativo mobile nativo para sistema Android, focado no segmento emergente de mobilidade elétrica (carros e motos). "
+			"O ecossistema da aplicação deve contemplar:\n\n"
+			"\t1. **Gestão e Lembretes Preventivos:** cadastro e gerenciamento de veículos elétricos (motos e carros); "
+			"alertas e lembretes inteligentes configurados para revisões periódicas e manutenção preventiva de componentes específicos (ex: saúde da bateria, sistema de arrefecimento do inversor, pastilha de freio regenerativo, calibração e desgaste ded pneus).\n\n"
+			"\t2. **Rede de Parceiros e Serviços:** mapeamento e exibição de **lojas de autopeças parceiras** integradas ao app para compra direta ou consulta de itens e peças de reposição; "
+			"catálogo e geolocalização de oficinas e **redes autorizadas** para agendamento de serviços e reparos especializados em veículos elétricos; "
+			"alerta para baterias fraca e recomendações de postos de carregamento elétrico próximos (proporcionalmente à quantidade de bateria e autonomia restante)."
+		)
+
 	anotacoes = st.text_area(
 		"📝 Cole aqui a transcrição ou anotações da Reunião de Diagnósticos com o Lead:",
-		height=160,
+		value=st.session_state.texto_lead,
+		height=320,
 		placeholder="Ex: Reunião de Alinhamento - Empresa XPTO..."
 	)
 
-	if st.button("⚡ Gerar Documentação, Alocar Equipes e Propagar para Diretorias", type="primary"):
+	if st.button("⚡ Gerar Documentação, Alocar Equipes e Propagar para Diretorias", type="primary", use_container_width=True):
 		if not anotacoes.strip():
 			st.warning("Insira as anotações do Lead primeiro.")
 		else:
@@ -63,11 +105,20 @@ with aba_copiloto:
 
 			st.success("✅ Processamento concluído e salvo no Firebase!")
 
+			k1, k2, k3, k4 = st.columns(4)
+
+			k1.metric("Complexidade Técnica", requisitos.complexidade)
+			k2.metric("Esforço Estimado", f"{orcamento_travado.get("horas_consideradas", 0)} horas")
+			k3.metric("Orçamento Base (Adm/Fin)", f"R\\$ {orcamento_travado.get("orcamento_base_calculado", 0):.2f}")
+			k4.metric(f"Com Margem de Segurança ({regras_adm.get("margem_seguranca_percentual", 0)}%)", f"R\\$ {orcamento_travado.get("orcamento_com_margem_seguranca" , 0):.2f}")
+
+			st.divider()
+
 			col1, col2 = st.columns(2)
 
 			with col1:
 				st.subheader(f"📋 Documento de Requisitos: {requisitos.nome_projeto}")
-				st.write(f"**Complexidade:** {requisitos.complexidade} | **Esforço Estimado:** {requisitos.horas_estimadas_desenvolvimento}h")
+				# st.write(f"**Complexidade:** {requisitos.complexidade} | **Esforço Estimado:** {requisitos.horas_estimadas_desenvolvimento}h")
 				st.write(requisitos.resumo_executivo)
 				st.markdown("**Stack Recomendada:** " + ", ".join([f"`{s}`" for s in requisitos.stack_sugerida]))
 
@@ -80,12 +131,13 @@ with aba_copiloto:
 					st.markdown(f"- {rnf}")
 
 			with col2:
-				st.subheader("🏛️ Propagação inter-diretorias (Guardrail Ativo)")
+				st.subheader("🏛️ Propagação Inter-Diretorias (Guardrail Ativo)")
 				st.info(
-					f"💰 **Adm/Fin (Cálculo Travado por Guardrail):**\n\n"
-					f"- **Esforço Considerado:** {orcamento_travado.get("horas_consideradas")}h (R\\$ {orcamento_travado.get("valor_hora_tabela")}/h)\n"
-					f"- **Orçamento Base:** R\\$ {orcamento_travado.get("orcamento_base_calculado"):.2f}\n"
-					f"- **Sugestão com Margem ({regras_adm.get("margem_seguranca_percentual")} %):** R\\$ {orcamento_travado.get("orcamento_com_margem_seguranca"):.2f}\n\n"
+					# f"💰 **Adm/Fin (Cálculo Travado por Guardrail):**\n\n"
+					# f"- **Esforço Considerado:** {orcamento_travado.get("horas_consideradas")}h (R\\$ {orcamento_travado.get("valor_hora_tabela")}/h)\n"
+					# f"- **Orçamento Base:** R\\$ {orcamento_travado.get("orcamento_base_calculado"):.2f}\n"
+					# f"- **Sugestão com Margem ({regras_adm.get("margem_seguranca_percentual")} %):** R\\$ {orcamento_travado.get("orcamento_com_margem_seguranca"):.2f}\n\n"
+					f"💰 **Parecer Diretoria Adm/Fin (Travado por Guardrail):**\n\n"
 					f"{resultado_final.insumos_adm_fin}"
 				)
 
@@ -94,7 +146,7 @@ with aba_copiloto:
 			st.divider()
 			st.subheader("👥 Múltiplas Sugestões de Equipes Multidisciplinares (Membros + Trainees)")
 
-			with st.expander("🔍 Ver Score de Similaridade Vetorial (Embeddings) dos Membros Elegíveis:"):
+			with st.expander("🔍 Auditoria do Banco Vetorial: Ver Score de Similaridade Vetorial (Embeddings) dos Membros Elegíveis:"):
 				st.dataframe(membros_ranqueados, use_container_width=True)
 
 			cols_squad = st.columns(len(resultado_final.opcoes_equipes))
@@ -104,14 +156,14 @@ with aba_copiloto:
 					st.caption(squad.foco_da_equipe)
 
 					for m in squad.membros:
-						st.markdown(f"**{m.nome}** ({m.cargo}) - *{m.papel_no_projeto}* \n 🎯 **Match Vetorial:** `{m.score_afinidade} %`")
+						st.markdown(f"**{m.nome}** ({m.cargo}) - *{m.papel_no_projeto}*  \n🎯 **Match Vetorial:** `{m.score_afinidade} %`")
 						st.write(f"↳ {m.justificativa_tecnica}")
 			
 			relatorio_md = f"""# Documento de Projeto: {requisitos.nome_projeto}
 
 **Complexidade:** {requisitos.complexidade} | **Horas Estimadas:** {requisitos.horas_estimadas_desenvolvimento}h
 
-**Orçamento Base (Guardrail):** R\\$ {orcamento_travado.get("orcamento_base_calculado"):.2f} | **Com Margem:** R\\$ {orcamento_travado.get("orcamento_com_margem_seguranca"):.2f}
+**Orçamento Base (Guardrail):** R\\$ {orcamento_travado.get("orcamento_base_calculado", 0):.2f} | **Com Margem:** R\\$ {orcamento_travado.get("orcamento_com_margem_seguranca", 0):.2f}
 
 ## 1. Resumo Executivo
 
@@ -142,11 +194,12 @@ with aba_copiloto:
 				label="📥 Baixar Documentação Completa (.md)",
 				data=relatorio_md,
 				file_name=f"Escopo_{requisitos.nome_projeto.replace(" ", "_")}.md",
-				mime="text/markdown"
+				mime="text/markdown",
+				use_container_width=True
 			)
 
 with aba_banco:
-	st.subheader("Membros Atuais e Trainees Sincronizados no Firestore")
+	st.subheader("👥 Membros Atuais e Trainees Sincronizados no Firestore")
 	docs = db.collection("bugwares").stream()
 	membros_lista = []
 	for doc in docs:
@@ -154,6 +207,15 @@ with aba_banco:
 		atual["vetor_ativo"] = "✅ Sim (2048 dims)" if "embedding_skills" in atual else "❌ Não"
 		atual.pop("embedding_skills", None)
 		membros_lista.append(atual)
+
+	livres = sum(1 for m in membros_lista if str(m.get("status", "")).lower() == "livre")
+	trainees = sum(1 for m in membros_lista if str(m.get("cargo", "")).lower() == "trainee")
+
+	c_m1, c_m2, c_m3 = st.columns(3)
+	
+	c_m1.metric("Total de Bugwares no Banco", len(membros_lista))
+	c_m2.metric("Membros/Trainees Livres", livres)
+	c_m3.metric("Trainees para Capacitação", trainees)
 
 	st.dataframe(membros_lista, use_container_width=True)
 
@@ -194,11 +256,12 @@ with aba_banco:
 				st.success(f"✅ {nome} ({cargo}) cadastrado e vetorizado no Firestore! Recarregue a página para atualizar.")
 
 with aba_historico:
-	st.subheader("Histórico de Leads e Propostas Geradas")
+	st.subheader("Histórico de Leads e Propostas Geradas no Firebase")
 	historico_docs = db.collection("historico_leads").stream()
 
 	for h in historico_docs:
 		atual = h.to_dict()
+		orcamento = atual.get("orcamento", {})
 
-		with st.expander(f"📌 {atual.get("projeto", "Projeto")} - Orçamento c/ Margem: R\\$ {atual.get("orcamento", {}).get("orcamento_com_margem_seguranca", 0)}"):
+		with st.expander(f"📌 {atual.get("projeto", "Projeto")} | Esforço: {orcamento.get("horas_consideradas", 0)}h | Orçamento c/ Margem: R\\$ {orcamento.get("orcamento_com_margem_seguranca", 0):.2f}"):
 			st.json(atual)
