@@ -4,4 +4,3 @@ firebase-admin
 pydantic
 numpy
 python-dotenv
-gcloud

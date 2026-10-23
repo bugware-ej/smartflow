@@ -1,0 +1,30 @@
+nome,curso,periodo,cargo,status,area,skills,nivel_experiencia,horas_disponiveis
+Carlos Eduardo,Engenharia de Computacao,6,Membro Efetivo,Livre,Mobile,"Kotlin, Flutter, Firebase",Pleno,15
+Beatriz Souza,Analise e Desenvolvimento de Sistemas,3,Trainee,Livre,UX/UI,"Figma, Prototipacao, Design System",Trainee,12
+Lucas Mendes,Engenharia de Computacao,7,Membro Efetivo,Passivamente Ocupado,Backend,"Python, FastAPI, PostgreSQL, IA",Pleno,8
+Fernanda Lima,Engenharia de Computacao,5,Membro Efetivo,Ocupado,Frontend,"React, TypeScript, Tailwind",Junior,0
+Gabriel Costa,Analise e Desenvolvimento de Sistemas,2,Trainee,Livre,Frontend,"HTML, CSS, JavaScript, React",Trainee,15
+Mariana Alves,Engenharia de Computacao,6,Membro Efetivo,Livre,Backend,"Node.js, Firebase, APIs REST",Pleno,14
+Rafael Almeida,Engenharia de Computacao,4,Trainee,Livre,Backend,"C, Ponteiros e Structs, Python, C#",Trainee,12
+Juliana Martins,Analise e Desenvolvimento de Sistemas,2,Trainee,Livre,Fullstack e Mobile,"HTML, CSS, JavaScript, Java, Kotlin, C, SQL",Trainee,15
+Thiago Oliveira,Engenharia de Computacao,4,Membro Efetivo,Livre,Fullstack e Dados,"JavaScript, Java, Python, PHP, Git/GitHub, Power BI, Adobe Photoshop",Junior,14
+Camila Ribeiro,Engenharia de Computacao,2,Trainee,Livre,Backend,"JavaScript, Java, C/C++, MySQL",Trainee,12
+Henrique Carvalho,Engenharia de Computacao,7,Membro Efetivo,Livre,Backend e IA,"Java, Spring Boot, Python, PostgreSQL, APIs REST, JPA/Hibernate, Thymeleaf, Git/GitHub, Visao Computacional (U-Net), Microcontroladores PIC",Senior,16
+Leticia Gomes,Analise e Desenvolvimento de Sistemas,1,Trainee,Livre,Frontend,"HTML, CSS, JavaScript",Trainee,10
+Mateus Pereira,Analise e Desenvolvimento de Sistemas,3,Membro Efetivo,Passivamente Ocupado,Backend,"C#, ASP.NET Core, PostgreSQL, JavaScript, Git/GitHub",Junior,10
+Felipe Santos,Engenharia de Computacao,2,Trainee,Livre,Backend,"C, Logica de Programacao",Trainee,12
+Amanda Rocha,Engenharia de Computacao,4,Trainee,Livre,Dados e IA,"C, Java, Engenharia de Prompts (IA), Arduino, Excel",Trainee,12
+Bruno Ferreira,Engenharia de Computacao,4,Trainee,Passivamente Ocupado,Dados e Gestao,"C, Excel, Analise de Planilhas",Trainee,8
+Larissa Barbosa,Engenharia de Computacao,5,Trainee,Livre,Frontend,"HTML, CSS, Git/GitHub, C",Trainee,14
+Gustavo Nascimento,Engenharia de Computacao,3,Trainee,Ocupado,Backend,"C/C++, Java",Junior,0
+Carolina Dias,Engenharia de Computacao,6,Trainee,Livre,Fullstack,"C, JavaScript, Python",Trainee,12
+Vitor Hugo Castro,Engenharia de Computacao,8,Membro Efetivo,Passivamente Ocupado,IoT e Backend,"Java, Python, C++, C, Arduino, ESP32, Eletronica",Senior,10
+Natalia Cardoso,Engenharia de Computacao,7,Membro Efetivo,Livre,Fullstack e Automacoes IA,"Python, Java, JavaScript, C/C++, HTML, CSS, Banco de Dados, Ferramentas de IA, Automacao de Processos",Pleno,15
+Diego Moraes,Engenharia de Computacao,5,Membro Efetivo,Livre,Gamedev e Backend,"C, C#, Unity, Modelagem 2D/3D, Maratona de Programacao",Junior,12
+Pedro Henrique Silva,Engenharia de Computacao,2,Trainee,Livre,Backend,"C, Algoritmos",Trainee,10
+Igor Teixeira,Engenharia de Computacao,6,Membro Efetivo,Livre,IoT e Automacao,"C, ESP32, IoT Wi-Fi, Eletronica Digital, Automacao e Controle",Junior,14
+Marcelo Vieira,Engenharia de Computacao,8,Membro Efetivo,Ocupado,Algoritmos e QA,"C, Maratona de Programacao, Resolucao de Problemas",Junior,0
+Daniela Monteiro,Engenharia de Computacao,6,Membro Efetivo,Livre,Backend,"JavaScript, TypeScript, Node.js, Python, Java, Maven, SQL, APIs REST, HTML, CSS, POO, Estruturas de Dados",Pleno,16
+Andre Luiz Freitas,Engenharia de Computacao,4,Trainee,Livre,Backend,"C/C++, Java, POO, Banco de Dados, Programacao Competitiva",Trainee,12
+Sofia Nogueira,Engenharia de Computacao,4,Trainee,Livre,PM/PO e Frontend,"HTML, XHTML, Java, C, Estrutura de Dados, Git/GitHub, Notion, Office 365, Excel",Trainee,14
+Leonardo Azevedo,Analise e Desenvolvimento de Sistemas,3,Trainee,Livre,Frontend e Multimidia,"HTML, CSS, JavaScript, Linux, Blender, Edicao de Imagem/Audio/VIdeo, Ingles Intermediario, C",Trainee,15
